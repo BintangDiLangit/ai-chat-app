@@ -1,101 +1,145 @@
-import Image from "next/image";
+"use client";
+
+import { ChatSection } from "@/components/Chat/ChatSection";
+import { Sidebar } from "@/components/Chat/Sidebar";
+import { useEffect, useState } from "react";
+
+type MessageRole = "user" | "assistant";
+type FileData = { name: string; url: string; type: string };
+
+interface ChatMessage {
+  role: MessageRole;
+  content: string;
+  files?: FileData[];
+  timestamp: string;
+}
+
+const INITIAL_MESSAGE: ChatMessage = {
+  role: "assistant",
+  content: "👋 Hello! I'm your AI assistant. How can I help you today?",
+  timestamp: new Date().toISOString(),
+};
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [message, setMessage] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
+  const [chatHistory, setChatHistory] = useState<Array<any>>([]);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+  useEffect(() => {
+    if (chatHistory.length === 0) {
+      setChatHistory([
+        {
+          role: "assistant" as const,
+          content: "👋 Hello! I'm your AI assistant. How can I help you today?",
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+    }
+  }, []);
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSend = async () => {
+    if (!message.trim() && files.length === 0) return;
+
+    const userMessage: ChatMessage = {
+      role: "user",
+      content: message,
+      files: files.map((file) => ({
+        name: file.name,
+        url: URL.createObjectURL(file),
+        type: file.type,
+      })),
+      timestamp: new Date().toISOString(),
+    };
+
+    setChatHistory((prev) => [...prev, userMessage]);
+    setMessage("");
+    setFiles([]);
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: message }),
+      });
+
+      if (!response.ok) throw new Error("API request failed");
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let receivedText = "";
+
+      const aiMessage: ChatMessage = {
+        role: "assistant",
+        content: "",
+        timestamp: new Date().toISOString(),
+      };
+
+      setChatHistory((prev) => [...prev, aiMessage]);
+
+      while (true) {
+        const { done, value } = await reader!.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+
+        try {
+          // Parse each chunk safely
+          console.log("test");
+          console.log(chunk);
+
+          const json = JSON.parse(chunk);
+          if (json.response) {
+            receivedText += json.response;
+          }
+        } catch (error) {
+          console.error("Error parsing response chunk:", error);
+        }
+
+        // Update the last AI message progressively
+        setChatHistory((prev) =>
+          prev.map((msg, index) =>
+            index === prev.length - 1 ? { ...msg, content: receivedText } : msg
+          )
+        );
+      }
+    } catch (error) {
+      const errorMessage: ChatMessage = {
+        role: "assistant",
+        content: "⚠️ Error processing your request. Please try again.",
+        timestamp: new Date().toISOString(),
+      };
+      setChatHistory((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) setFiles(Array.from(e.target.files));
+  };
+
+  const handleNewChat = () => {
+    setChatHistory([INITIAL_MESSAGE]);
+    setMessage("");
+    setFiles([]);
+  };
+
+  return (
+    <div className="flex h-screen bg-background">
+      <Sidebar onNewChat={handleNewChat} />
+      <ChatSection
+        chatHistory={chatHistory}
+        message={message}
+        files={files}
+        isLoading={isLoading}
+        onMessageChange={setMessage}
+        onSend={handleSend}
+        onFileSelect={handleFileSelect}
+        onFileRemove={(index) => setFiles(files.filter((_, i) => i !== index))}
+      />
     </div>
   );
 }

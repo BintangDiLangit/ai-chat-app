@@ -3,19 +3,81 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  :root {
+    --background: 270 50% 3.9%;
+    --foreground: 270 10% 98%;
+    --card: 270 50% 5.9%;
+    --card-foreground: 270 10% 98%;
+    --popover: 270 50% 3.9%;
+    --popover-foreground: 270 10% 98%;
+    --primary: 270 100% 50%;
+    --primary-foreground: 270 10% 98%;
+    --secondary: 270 30% 10%;
+    --secondary-foreground: 270 10% 98%;
+    --muted: 270 30% 10%;
+    --muted-foreground: 270 10% 60%;
+    --accent: 270 30% 15%;
+    --accent-foreground: 270 10% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 270 10% 98%;
+    --border: 270 30% 15%;
+    --input: 270 30% 15%;
+    --ring: 270 100% 50%;
+    --chart-1: 270 100% 50%;
+    --chart-2: 290 100% 50%;
+    --chart-3: 250 100% 50%;
+    --chart-4: 310 100% 50%;
+    --chart-5: 230 100% 50%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 270 50% 3.9%;
+    --foreground: 270 10% 98%;
+    --card: 270 50% 5.9%;
+    --card-foreground: 270 10% 98%;
+    --popover: 270 50% 3.9%;
+    --popover-foreground: 270 10% 98%;
+    --primary: 270 100% 50%;
+    --primary-foreground: 270 10% 98%;
+    --secondary: 270 30% 10%;
+    --secondary-foreground: 270 10% 98%;
+    --muted: 270 30% 10%;
+    --muted-foreground: 270 10% 60%;
+    --accent: 270 30% 15%;
+    --accent-foreground: 270 10% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 270 10% 98%;
+    --border: 270 30% 15%;
+    --input: 270 30% 15%;
+    --ring: 270 100% 50%;
+    --chart-1: 270 100% 50%;
+    --chart-2: 290 100% 50%;
+    --chart-3: 250 100% 50%;
+    --chart-4: 310 100% 50%;
+    --chart-5: 230 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
