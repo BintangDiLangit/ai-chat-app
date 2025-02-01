@@ -4,17 +4,7 @@ import { ChatSection } from "@/components/Chat/ChatSection";
 import { Sidebar } from "@/components/Chat/Sidebar";
 import { useEffect, useState } from "react";
 
-type MessageRole = "user" | "assistant";
-type FileData = { name: string; url: string; type: string };
-
-interface ChatMessage {
-  role: MessageRole;
-  content: string;
-  files?: FileData[];
-  timestamp: string;
-}
-
-const INITIAL_MESSAGE: ChatMessage = {
+const INITIAL_MESSAGE: ChatMessageProps = {
   role: "assistant",
   content: "👋 Hello! I'm your AI assistant. How can I help you today?",
   timestamp: new Date().toISOString(),
@@ -23,7 +13,7 @@ const INITIAL_MESSAGE: ChatMessage = {
 export default function Home() {
   const [message, setMessage] = useState("");
   const [files, setFiles] = useState<File[]>([]);
-  const [chatHistory, setChatHistory] = useState<Array<any>>([]);
+  const [chatHistory, setChatHistory] = useState<Array<ChatMessageProps>>([]);
 
   useEffect(() => {
     if (chatHistory.length === 0) {
@@ -35,21 +25,22 @@ export default function Home() {
         },
       ]);
     }
-  }, []);
+  }, [chatHistory]);
 
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSend = async () => {
     if (!message.trim() && files.length === 0) return;
 
-    const userMessage: ChatMessage = {
+    const userMessage: ChatMessageProps = {
       role: "user",
       content: message,
-      files: files.map((file) => ({
-        name: file.name,
-        url: URL.createObjectURL(file),
-        type: file.type,
-      })),
+      files: files.map(
+        (file) =>
+          new File([file], file.name, {
+            type: file.type,
+          })
+      ),
       timestamp: new Date().toISOString(),
     };
 
@@ -71,7 +62,7 @@ export default function Home() {
       const decoder = new TextDecoder();
       let receivedText = "";
 
-      const aiMessage: ChatMessage = {
+      const aiMessage: ChatMessageProps = {
         role: "assistant",
         content: "",
         timestamp: new Date().toISOString(),
@@ -106,11 +97,12 @@ export default function Home() {
         );
       }
     } catch (error) {
-      const errorMessage: ChatMessage = {
+      const errorMessage: ChatMessageProps = {
         role: "assistant",
         content: "⚠️ Error processing your request. Please try again.",
         timestamp: new Date().toISOString(),
       };
+      console.log(error);
       setChatHistory((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);

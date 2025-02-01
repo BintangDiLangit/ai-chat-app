@@ -3,13 +3,6 @@
 import { Avatar } from "@/components/ui/avatar";
 import { User, Sparkles, Image, FileText } from "lucide-react";
 
-interface ChatMessageProps {
-  role: "user" | "assistant";
-  content: string;
-  timestamp: string;
-  files?: File[];
-}
-
 const cleanHTML = (text: string) => {
   return text.replace(/<\/?think>/g, "");
 };
