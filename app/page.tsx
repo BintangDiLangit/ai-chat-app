@@ -2,6 +2,8 @@
 
 import { ChatSection } from "@/components/Chat/ChatSection";
 import { Sidebar } from "@/components/Chat/Sidebar";
+import { Button } from "@/components/ui/button";
+import { Menu } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const INITIAL_MESSAGE: ChatMessageProps = {
@@ -13,6 +15,7 @@ const INITIAL_MESSAGE: ChatMessageProps = {
 export default function Home() {
   const [message, setMessage] = useState("");
   const [files, setFiles] = useState<File[]>([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [chatHistory, setChatHistory] = useState<Array<ChatMessageProps>>([]);
 
   useEffect(() => {
@@ -117,11 +120,40 @@ export default function Home() {
     setChatHistory([INITIAL_MESSAGE]);
     setMessage("");
     setFiles([]);
+    setIsSidebarOpen(false);
   };
 
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar onNewChat={handleNewChat} />
+      {/* Mobile Menu Button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="fixed top-4 left-4 z-50 md:hidden"
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+      >
+        <Menu className="h-6 w-6" />
+      </Button>
+
+      {/* Sidebar */}
+      <div
+        className={`
+        fixed inset-y-0 left-0 z-40 w-80 transform transition-transform duration-300 ease-in-out
+        md:relative md:translate-x-0
+        ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+      `}
+      >
+        <Sidebar onNewChat={handleNewChat} />
+      </div>
+
+      {/* Overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       <ChatSection
         chatHistory={chatHistory}
         message={message}
