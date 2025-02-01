@@ -5,15 +5,8 @@ import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
 import { Loader2 } from "lucide-react";
 
-interface Message {
-  role: "user" | "assistant";
-  content: string;
-  timestamp: string;
-  files?: File[];
-}
-
 interface ChatSectionProps {
-  chatHistory: Message[];
+  chatHistory: ChatMessageProps[];
   message: string;
   files: File[];
   isLoading: boolean;
